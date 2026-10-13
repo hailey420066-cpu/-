@@ -1,7 +1,7 @@
 export type Store = {
   id: string; name: string; city: string; district: string; address: string;
   styles: string[]; items: string[]; hours: string; instagram: string;
-  mapUrl: string; notionUrl: string; photo: string;
+  mapUrl: string; notionUrl: string; photo: string; photos: string[]; description: string;
 };
 const rich = (prop: any): string => {
   if (!prop) return '';
@@ -13,13 +13,14 @@ const rich = (prop: any): string => {
 const multi = (prop: any): string[] => (prop?.multi_select || []).map((v:any)=>v.name);
 export function asStore(page: any): Store {
   const p = page.properties || {};
-  const photoFile = p['사진']?.files?.[0];
-  const photo = photoFile?.file?.url || photoFile?.external?.url || '';
+  const photos = [...(p['사진']?.files || []),...(p['추가 사진']?.files || [])].map((f:any)=>f.file?.url||f.external?.url||'').filter(Boolean);
+  const photo = photos[0] || '';
+  const description = rich(p['매장 소개']) || rich(p['소개']) || rich(p['설명']) || '';
   return {
     id: page.id, name: rich(p['매장명']), city: rich(p['도시']), district: rich(p['지역']),
     address: rich(p['주소']), styles: multi(p['스타일']), items: multi(p['취급 품목']),
     hours: rich(p['운영시간']), instagram: rich(p['인스타그램']), mapUrl: rich(p['지도 URL']),
-    notionUrl: page.url || '', photo
+    notionUrl: page.url || '', photo, photos, description
   };
 }
 const normalize = (s:string) => s.toLocaleLowerCase().replace(/\s+/g,'').normalize('NFC');
