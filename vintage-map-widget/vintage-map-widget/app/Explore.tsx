@@ -14,7 +14,7 @@ export default function Explore({stores,initialView='styles',hideTabs=false}:{st
  const [selectedStyle,setSelectedStyle]=useState<string|null>(null);
  useEffect(()=>{const sync=()=>{try{setFav(JSON.parse(localStorage.getItem(key)||'[]'))}catch{}};sync();window.addEventListener('focus',sync);window.addEventListener('vm-favorites-updated',sync);fetch('/api/explore').then(r=>r.json()).then(x=>setData({styles:x.styles||[],events:x.events||[],reviews:x.reviews||[],warnings:x.warnings||[]})).catch(()=>setData(d=>({...d,warnings:['추가 콘텐츠를 불러오지 못했습니다.']})));return()=>{window.removeEventListener('focus',sync);window.removeEventListener('vm-favorites-updated',sync)}},[]);
  const toggle=(id:string)=>setFav(old=>{const next=old.includes(id)?old.filter(x=>x!==id):[...old,id];try{localStorage.setItem(key,JSON.stringify(next));window.dispatchEvent(new Event('vm-favorites-updated'))}catch{}return next});
- const normalized=(value:string)=>value.toLocaleLowerCase('ko').normalize('NFC').replace(/[\\s\\-_·]/g,'');
+ const normalized=(value:string)=>value.toLocaleLowerCase('ko').normalize('NFC').replaceAll(' ','').replaceAll('-','').replaceAll('_','').replaceAll('·','');
  const saved=useMemo(()=>stores.filter(s=>fav.includes(s.id)),[stores,fav]);
  return <section className="explore" id="explore">
  <div className="exploreTop"><span className="eyebrow">BEYOND THE MAP</span><h2>EXPLORE VINTAGE.</h2><p>스타일을 발견하고, 빈티지 행사와 마음에 드는 매장을 모아보세요.</p></div>
