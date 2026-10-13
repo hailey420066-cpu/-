@@ -1,5 +1,5 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {ArrowRight,ArrowLeft,RotateCcw,MapPin,ArrowUpRight,Sparkles} from 'lucide-react';
 import type {Store} from '../lib/stores';
 
@@ -16,7 +16,7 @@ const about:Record<Vibe,string>={
  '그런지':'낡은 질감, 레이어드, 거친 무드를 자연스럽게 즐기는 취향.'
 };
 type Option={label:string;values:Vibe[];reason:string};
-const questions:{title:string;hint:string;weight:number;options:Option[]}[]=[
+const defaultQuestions:{title:string;hint:string;weight:number;options:Option[]}[]=[
  {title:'실제로 가장 자주 입고 싶은 착장은?',hint:'유행보다 일상에서 손이 갈 옷을 골라줘.',weight:3,options:[
  {label:'워크 재킷, 생지 데님, 가죽 부츠',values:['워크웨어','아메카지'],reason:'탄탄한 데님과 실용적인 디테일'},
  {label:'니트, 치노 팬츠, 자연스러운 레이어드',values:['아메카지','미니멀'],reason:'편안하고 클래식한 레이어드'},
@@ -104,10 +104,13 @@ const aliases:Record<Vibe,string[]>={
  '그런지':['그런지','grunge']
 };
 export default function VibeQuiz({stores}:{stores:Store[]}){
+ const [questions,setQuestions]=useState(defaultQuestions);
+ const [questionSource,setQuestionSource]=useState<'loading'|'notion'|'fallback'>('loading');
  const [answers,setAnswers]=useState<number[]>([]);
  const [started,setStarted]=useState(false);
  const [finished,setFinished]=useState(false);
  const [city,setCity]=useState('');
+ useEffect(()=>{let active=true;fetch('/api/vibe').then(r=>r.json()).then(data=>{if(!active)return;if(data.configured&&Array.isArray(data.questions)&&data.questions.length>0){setQuestions(data.questions);setQuestionSource('notion')}else{setQuestionSource('fallback')}}).catch(()=>{if(active)setQuestionSource('fallback')});return()=>{active=false}},[]);
  const index=answers.length;
  const analysis=useMemo(()=>{
   const scores=Object.fromEntries(vibes.map(v=>[v,0])) as Record<Vibe,number>;
@@ -116,14 +119,14 @@ export default function VibeQuiz({stores}:{stores:Store[]}){
   const total=Object.values(scores).reduce((a,b)=>a+b,0)||1;
   const highlights=answers.map((choice,qi)=>({choice,qi,opt:questions[qi]?.options[choice]})).filter(x=>x.opt?.values.includes(ranking[0])).sort((a,b)=>questions[b.qi].weight-questions[a.qi].weight).slice(0,3).map(x=>x.opt.reason);
   return {ranking,scores,total,highlights};
- },[answers]);
+ },[answers,questions]);
  const result=analysis.ranking;
  const matches=useMemo(()=>stores.filter(store=>store.styles.some(style=>aliases[result[0]].some(name=>normalized(style)===normalized(name)||normalized(style).includes(normalized(name))))&&(!city||store.city===city)),[stores,result,city]);
  const cities=[...new Set(stores.map(s=>s.city).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
  const restart=()=>{setAnswers([]);setStarted(false);setFinished(false);setCity('')};
- return <section id="vibe" className="vibeSection"><div className="vibeHeader"><div><span className="eyebrow">DISCOVER YOUR STYLE</span><h2>FIND YOUR <em>VIBE.</em></h2><p>8개의 질문으로 나에게 어울리는 빈티지 스타일과 매장을 발견해 보세요.</p></div><Sparkles size={34} strokeWidth={1.3}/></div>
- {!started?<div className="vibeWelcome"><div><span>01 — 08 / PERSONAL STYLE QUIZ</span><h3>당신의 빈티지 취향은?</h3><p>정답은 없어. 마음이 끌리는 선택지만 골라 줘.</p></div><button onClick={()=>setStarted(true)}>테스트 시작 <ArrowRight size={19}/></button></div>:
- !finished?<div className="vibePanel"><div className="vibeProgress"><span>QUESTION {String(index+1).padStart(2,'0')} / 08</span><div><i style={{width:`${index/questions.length*100}%`}}/></div></div><h3>{questions[index].title}</h3><p>{questions[index].hint}</p><div className="vibeOptions">{questions[index].options.map((opt,i)=><button key={i} onClick={()=>{setAnswers(prev=>[...prev,i]);if(index===questions.length-1)setFinished(true)}}><span>{String(i+1).padStart(2,'0')}</span>{opt.label}<ArrowUpRight size={17}/></button>)}</div><div className="vibeBottom"><button onClick={()=>setAnswers(prev=>prev.slice(0,-1))} disabled={index===0}><ArrowLeft size={15}/> 이전 질문</button><button onClick={restart}>처음부터</button></div></div>:
+ return <section id="vibe" className="vibeSection"><div className="vibeHeader"><div><span className="eyebrow">DISCOVER YOUR STYLE</span><h2>FIND YOUR <em>VIBE.</em></h2><p>{questions.length}개의 질문으로 나에게 어울리는 빈티지 스타일과 매장을 발견해 보세요.</p></div><Sparkles size={34} strokeWidth={1.3}/></div>
+ {!started?<div className="vibeWelcome"><div><span>01 — {String(questions.length).padStart(2,'0')} / PERSONAL STYLE QUIZ</span><h3>당신의 빈티지 취향은?</h3><p>정답은 없어. 마음이 끌리는 선택지만 골라 줘.</p></div><button onClick={()=>setStarted(true)}>테스트 시작 <ArrowRight size={19}/></button></div>:
+ !finished?<div className="vibePanel"><div className="vibeProgress"><span>QUESTION {String(index+1).padStart(2,'0')} / {String(questions.length).padStart(2,'0')}</span><div><i style={{width:`${index/questions.length*100}%`}}/></div></div><h3>{questions[index].title}</h3><p>{questions[index].hint}</p><div className="vibeOptions">{questions[index].options.map((opt,i)=><button key={i} onClick={()=>{setAnswers(prev=>[...prev,i]);if(index===questions.length-1)setFinished(true)}}><span>{String(i+1).padStart(2,'0')}</span>{opt.label}<ArrowUpRight size={17}/></button>)}</div><div className="vibeBottom"><button onClick={()=>setAnswers(prev=>prev.slice(0,-1))} disabled={index===0}><ArrowLeft size={15}/> 이전 질문</button><button onClick={restart}>처음부터</button></div></div>:
  <div className="vibeResult"><span className="eyebrow">YOUR VINTAGE DNA</span><h3>당신의 스타일은 <em>{result[0]}</em></h3><p>{about[result[0]]}</p><div className="vibeSub">함께 나타난 취향 <strong>{result[1]}</strong></div><div className="vibeExplain"><strong>이런 답변이 결과에 영향을 줬어요</strong><ul>{analysis.highlights.map((reason,i)=><li key={i}>{reason}</li>)}</ul><small>스타일 분류는 선택한 의류·실루엣·디테일에 가중치를 둔 취향 추천이며, 확정적인 성격 진단이나 객관적인 정확도 수치는 아니에요.</small></div><div className="vibeRankings">{result.slice(0,3).map((v,i)=><div key={v}><span>{i+1}. {v}</span><div><i style={{width:`${Math.round(analysis.scores[v]/(analysis.scores[result[0]]||1)*100)}%`}}/></div></div>)}</div><div className="vibeMatches"><div className="vibeMatchHeading"><div><span className="eyebrow">MATCHED STORES</span><h4>당신의 취향에 어울리는 매장</h4></div><select aria-label="추천 매장 지역 선택" value={city} onChange={e=>setCity(e.target.value)}><option value="">전국</option>{cities.map(c=><option key={c} value={c}>{c}</option>)}</select></div>{matches.length?<div className="vibeStoreGrid">{matches.slice(0,6).map(s=><a key={s.id} href={`/stores/${encodeURIComponent(s.id)}`} target="_blank" rel="noopener noreferrer" className="vibeStore"><div><strong>{s.name}</strong><span><MapPin size={13}/>{[s.city,s.district].filter(Boolean).join(' · ')}</span></div><ArrowUpRight size={20}/></a>)}</div>:<p className="vibeNoStores">현재 선택한 지역에 이 스타일로 등록된 공개 매장이 없어요. 다른 지역을 선택해 보세요.</p>}</div><button className="vibeRestart" onClick={restart}><RotateCcw size={16}/> 다시 테스트하기</button></div>}
  </section>;
 }
