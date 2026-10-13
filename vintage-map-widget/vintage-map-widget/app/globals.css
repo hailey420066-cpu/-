@@ -39,3 +39,25 @@
 @media (prefers-reduced-motion:reduce){
  .mainNav a,.mainNav a::after,.storeCard,.editorCard,.styleCard,.storeCard .photo img,.storeCard .storePhotoFill img,.editorPhoto img,.stylePhoto img{transition:none!important;transform:none!important}
 }
+
+/* Interactive style archive: expandable related store list. */
+.styleCardButton{display:block;width:100%;padding:0;text-align:left;color:inherit;font:inherit;cursor:pointer;border-radius:0}
+.styleCardButton:focus-visible{outline:3px solid #9eb500;outline-offset:3px}
+.styleCardActive{border-color:#171717;box-shadow:0 0 0 1px #171717}
+.styleOpenLabel{display:block;margin-top:12px;font-weight:800;color:#272727}
+.styleRelated{margin-top:22px;background:#fff;border:1px solid #d8d8d3;padding:clamp(20px,3vw,32px);animation:styleReveal .25s ease-out}
+.styleRelatedHeading{display:flex;align-items:start;justify-content:space-between;gap:18px;margin-bottom:24px}
+.styleRelatedHeading h4{font-size:clamp(20px,3vw,28px);margin:7px 0}
+.styleRelatedHeading p{margin:0;color:#777;font-size:12px}
+.styleRelatedClose{border:1px solid #deded8;background:#f7f7f4;padding:9px 12px;font-size:12px;font-weight:700}
+.styleRelatedGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.styleRelatedItem{border:1px solid #e6e6e2;padding:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;min-width:0}
+.styleRelatedItem strong{font-size:16px}
+.styleRelatedItem p{display:flex;align-items:center;gap:5px;color:#777;font-size:12px;margin:9px 0}
+.styleRelatedItem small{font-size:11px;color:#777}
+.styleRelatedActions{display:flex;gap:7px;flex-wrap:wrap}
+.styleRelatedActions a{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:9px;background:#e9ff70;white-space:nowrap}
+.styleRelatedActions a:hover{background:#d9ed54}
+@keyframes styleReveal{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){.styleRelatedGrid{grid-template-columns:1fr}.styleRelatedItem{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.styleRelated{animation:none}}
