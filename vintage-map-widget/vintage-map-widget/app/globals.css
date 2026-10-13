@@ -153,3 +153,9 @@
 @media(max-width:850px){.pickDetailGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.pickDetailHero{grid-template-columns:1fr}.pickDetailPhoto{min-height:260px}.pickDetailGrid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.pickDetailStore{transition:none}.pickDetailStore:hover{transform:none}}
+
+/* Inline editor pick accordion: click card, then choose a linked shop. */
+.editorCardOpen{appearance:none;border:0;background:transparent;cursor:pointer;padding:0}
+.editorCardActive{border-color:#181818;box-shadow:0 0 0 1px #181818}
+.editorStoreLinks a{position:relative;z-index:3}
+.editorStores>strong{display:flex;justify-content:space-between;gap:8px}
