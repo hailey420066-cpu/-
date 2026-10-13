@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 const SOURCES = {
   styles: process.env.NOTION_STYLES_DATA_SOURCE_ID || 'bd333657-8f1a-4b07-8b45-4bd51a355390',
-  events: process.env.NOTION_EVENTS_DATA_SOURCE_ID || 'a29b68cb-8643-45b3-9d62-67b983e35bf1',
+  events: process.env.NOTION_EVENTS_DATA_SOURCE_ID || '224e059a-c421-484e-b80e-4fcc9914160f',
   reviews: process.env.NOTION_REVIEWS_DATA_SOURCE_ID || '47ef1aa7-0fb2-4086-96a5-92aba5b45958'
 };
 const plain=(p:any):string=> p?.type==='title'?(p.title||[]).map((v:any)=>v.plain_text||v.text?.content||'').join(''):p?.type==='rich_text'?(p.rich_text||[]).map((v:any)=>v.plain_text||v.text?.content||'').join(''):p?.type==='select'?p.select?.name||'':'';
